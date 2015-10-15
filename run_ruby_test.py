@@ -4,6 +4,7 @@ import functools
 import sublime
 import string
 import sublime_plugin
+import Terminal #Sublime plugin
 
 class ShowInPanel:
   def __init__(self, window):
@@ -125,6 +126,7 @@ class BaseRubyTask(sublime_plugin.TextCommand):
     global CUCUMBER_UNIT_FOLDER; CUCUMBER_UNIT_FOLDER = s.get("ruby_cucumber_folder")
     global RSPEC_UNIT_FOLDER; RSPEC_UNIT_FOLDER = s.get("ruby_rspec_folder")
     global USE_SCRATCH; USE_SCRATCH = s.get("ruby_use_scratch")
+    global USE_TERMINAL; USE_TERMINAL = s.get("ruby_use_terminal")
     global IGNORED_DIRECTORIES; IGNORED_DIRECTORIES = s.get("ignored_directories")
     global HIDE_PANEL; HIDE_PANEL = s.get("hide_panel")
     global BEFORE_CALLBACK; BEFORE_CALLBACK = s.get("before_callback")
@@ -204,18 +206,27 @@ class BaseRubyTask(sublime_plugin.TextCommand):
       command = COMMAND_PREFIX + ' ' + command
     if int(sublime.version().split('.')[0]) <= 2:
       command = [command]
-    self.view.window().run_command("exec", {
-      "cmd": command,
-      "shell": True,
-      "working_dir": working_dir,
-      "file_regex": r"([^ ]*\.rb):?(\d*)",
-      "encoding": TERMINAL_ENCODING
-    })
-    self.display_results()
+    if USE_TERMINAL:
+      trm=OpenInTerminal()
+      trm.run(working_dir, command)
+    else:  
+      self.view.window().run_command("exec", {
+        "cmd": command,
+        "shell": True,
+        "working_dir": working_dir,
+        "file_regex": r"([^ ]*\.rb):?(\d*)",
+        "encoding": TERMINAL_ENCODING
+      })
+      self.display_results()
     return True
 
+
   def display_results(self):
-    display = ShowInScratch(self.window()) if USE_SCRATCH else ShowInPanel(self.window())
+    if USE_SCRATCH:
+      display = ShowInScratch(self.window())
+    else:  
+      display = ShowInPanel(self.window())
+    
     display.display_results()
 
   def window(self):
@@ -574,3 +585,37 @@ class GenerateNewFile(GenerateTestFile):
 
   def suggest_file_name(self, path):
     return ""
+
+class OpenInTerminal(Terminal.TerminalCommand):
+  def get_terminal_args(self, t_app, working_dir, command):
+    if 'PS.bat' in t_app: 
+      args=[]
+    elif '\\System32\\cmd.exe'  in t_app:
+      args=[]
+    elif 'Terminal.sh'  in t_app:
+      args=[]
+    elif 'gnome-terminal'  in t_app:
+      #for gnome-terminal there i no '-hold' option, you have to set it in it's profile 
+      args= ["--title=Sublime Test Run","--working-directory="+working_dir, "--execute", "bash", "-c"]
+      args.extend([command])
+    elif  'xfce4-terminal'  in t_app:
+      args=[]
+    elif  'konsole'  in t_app:
+      args=[]
+    elif 'lxterminal'  in t_app:
+      args=[]
+    elif  'mate-terminal'  in t_app:
+      args=[]
+    elif  'xterm'  in t_app:
+      args=[]
+    else:
+      args=[]  
+
+    return args
+
+  def run(self, working_dir, command_to_execute):
+    parameters = Terminal.get_setting('parameters', [])
+    t_app=Terminal.TerminalSelector.get()
+    parameters.extend(self.get_terminal_args(t_app, working_dir,command_to_execute))
+
+    self.run_terminal(working_dir, parameters)

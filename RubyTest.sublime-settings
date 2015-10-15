@@ -21,6 +21,8 @@
   "check_for_spring": false,
 
   "ruby_use_scratch" : false,
+  "ruby_use_terminal": true,
+  
   "save_on_run": false,
   "ignored_directories": [".git", "vendor", "tmp"],
 
@@ -33,5 +35,5 @@
   "syntax": "Packages/RubyTest/TestConsole.tmLanguage",
 
   "terminal_encoding": "utf-8"
-
+  
 }
