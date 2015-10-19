@@ -1,0 +1,15 @@
+//ALL COMMENT SHOULD BE REMOVED BEFORE USE
+//1) RENAMING  THIS FILE TO 'dependecies.json' WILL MAKE Package Control to 'Installing 1 missing dependency'.
+//   EVEN IF Terminal IS ALLREADY INSTALLED
+//   WHICH THEN LEAD TO: 
+//   "./package_control/package_manager.py", line 1317, in install_package"
+//   "KeyError: 'load_order'"
+//2) so I EXPECT to Terminal Package IS instaled and importing it directly in 'run_ruby_test.py'
+
+{
+	"*": {
+		"*": [
+			"Terminal"
+		]
+	}
+}

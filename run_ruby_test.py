@@ -4,6 +4,14 @@ import functools
 import sublime
 import string
 import sublime_plugin
+
+#This does not work:
+#from package_control import sys_path
+#sys_path.add_dependency(u'Terminal')
+
+#for 'run_in terminal' package 'Terminal' is needed
+import sys
+sys.path.append(sublime.packages_path()+u'/Terminal')
 import Terminal #Sublime plugin
 
 class ShowInPanel:
@@ -596,20 +604,28 @@ class OpenInTerminal(Terminal.TerminalCommand):
       args=[]
     elif 'gnome-terminal'  in t_app:
       #for gnome-terminal there i no '-hold' option, you have to set it in it's profile 
-      args= ["--title=Sublime Test Run","--working-directory="+working_dir, "--execute", "bash", "-c"]
+      args= ["--title=\"Sublime Test Run\"","--working-directory="+working_dir, "--execute", "bash", "-c"]
       args.extend([command])
     elif  'xfce4-terminal'  in t_app:
-      args=[]
+      args= ["--title=\"Sublime Test Run\"","--working-directory="+working_dir, "--hold", "--execute", "bash", "-c"]
+      args.extend([command])
     elif  'konsole'  in t_app:
-      args=[]
+      args= ["-T=\"Sublime Test Run\"","--workdir="+working_dir, "--hold", "-e", "bash", "-c"]
+      args.extend([command])
     elif 'lxterminal'  in t_app:
-      args=[]
+      # I do not known how to left lxterminal window open after end of tests
+      args= ["--title=\"Sublime Test Run\"","--working-directory="+working_dir,  "-e" ]
+      args.extend([command])
+
     elif  'mate-terminal'  in t_app:
       args=[]
     elif  'xterm'  in t_app:
-      args=[]
+      args= ["-title","\"Sublime Test Run\"", "-hold", "-e", "bash", "-c"]
+      command_with_cd="cd "+working_dir+" && "+command
+      args.extend([command_with_cd])
     else:
       args=[]  
+      args.extend([command])
 
     return args
 
@@ -617,5 +633,4 @@ class OpenInTerminal(Terminal.TerminalCommand):
     parameters = Terminal.get_setting('parameters', [])
     t_app=Terminal.TerminalSelector.get()
     parameters.extend(self.get_terminal_args(t_app, working_dir,command_to_execute))
-
     self.run_terminal(working_dir, parameters)
